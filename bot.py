@@ -4,14 +4,13 @@ import re
 import sqlite3
 import os
 import configparser
+import resources
 from telebot import types
 
 config = configparser.ConfigParser()
 config.read('config.ini')
 
-res = ['thread', 'stick', 'pelt','bone','coal','charcoal','powder','iron ore','cloth','silver ore', \
-    'magic stone', 'sapphire','solvent','ruby','hardener','steel','leather','bone powder','string', \
-    'coke','rope','metal plate']
+res = resources.names
 bot_token = config['USER_BOT']['BOT_TOKEN']
 db_name = config['DATABASE']['DB_NAME']
 

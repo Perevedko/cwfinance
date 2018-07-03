@@ -3,6 +3,8 @@ import pika
 import json
 import sqlite3
 import datetime
+import configparser
+import resources
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -26,22 +28,15 @@ def saveRaw(store_list):
     conn = sqlite3.connect('finance.db')
     cursor = conn.cursor()
     result = cursor.execute('SELECT Count(*) FROM Resources').fetchone()
-    if result[0] >= 8640:
+    records_number = result[0]
+    records_per_hour = 60 / 5 # new record every 5 minutes
+    records_per_day = records_per_hour * 24
+    records_per_month = int(records_per_day * 30) # == 8640
+    if records_number >= records_per_month:
         cursor.execute('DELETE FROM Resources WHERE rowid IN (SELECT rowid FROM Resources limit 1)')
-    cursor.execute('INSERT INTO Resources \
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', \
-        (datetime.datetime.now().strftime('%m-%d %H:%M'), \
-        store_list['Thread']  if 'Thread' in store_list else 0, store_list['Stick']  if 'Stick' in store_list else 0, \
-        store_list['Pelt'] if 'Pelt' in store_list else 0, store_list['Bone'] if 'Bone' in store_list else 0, \
-        store_list['Coal'] if 'Coal' in store_list else 0, store_list['Charcoal'] if 'Charcoal' in store_list else 0, \
-        store_list['Powder'] if 'Powder' in store_list else 0, store_list['Iron ore'] if 'Iron ore' in store_list else 0,\
-        store_list['Cloth'] if 'Cloth' in store_list else 0, store_list['Silver ore'] if 'Silver ore' in store_list else 0,
-        store_list['Magic stone'] if 'Magic stone' in store_list else 0, store_list['Sapphire'] if 'Sapphire' in store_list else 0, \
-        store_list['Solvent'] if 'Solvent' in store_list else 0, store_list['Ruby'] if 'Ruby' in store_list else 0,\
-        store_list['Hardener'] if 'Hardener' in store_list else 0, store_list['Steel'] if 'Steel' in store_list else 0, \
-        store_list['Leather'] if 'Leather' in store_list else 0, store_list['Bone powder'] if 'Bone powder' in store_list else 0, \
-        store_list['String'] if 'String' in store_list else 0, store_list['Coke'] if 'Coke' in store_list else 0, \
-        store_list['Rope'] if 'Rope' in store_list else 0, store_list['Metal plate'] if 'Metal plate' in store_list else 0))
+    prices_for_resources = [store_list.get(name, 0) for name in resources.names_capitalized]
+    cursor.execute('INSERT INTO Resources VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+                   (datetime.datetime.now().strftime('%m-%d %H:%M'), *prices_for_resources))
     conn.commit()
     conn.close()
 
