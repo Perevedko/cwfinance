@@ -1,5 +1,5 @@
 matplotlib
 pandas
 pika
-telebot
+pytelegrambotapi
 configparser
